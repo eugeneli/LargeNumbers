@@ -38,7 +38,6 @@ public class NumberBoxGroup extends Group
 	
 	public void update(long playerScore)
 	{
-		System.out.println(inactiveNumberBoxes.size());
 		//Reset point changes
 		pointChanges[0] = 0;
 		pointChanges[1] = 0;

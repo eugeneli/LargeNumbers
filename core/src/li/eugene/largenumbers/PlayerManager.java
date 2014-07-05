@@ -1,5 +1,9 @@
 package li.eugene.largenumbers;
 
+import java.text.DecimalFormat;
+
+import li.eugene.largenumbers.util.NumberFormatter;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -16,7 +20,6 @@ public class PlayerManager extends Actor
 	private long negativeGoal = 0;
 	private long positiveGoal = 0;
 	
-	private int POINT_CHANGE_RATE = (int) Math.ceil(.99f * positiveGoal + 1);
 	private final static float PLAYER_SCORE_HEIGHT = 100;
 	
 	public PlayerManager()
@@ -56,12 +59,12 @@ public class PlayerManager extends Actor
 	    //Draw number
 	  	font.setColor(Color.WHITE);
 	  	float[] fontPos = getCenteredFontPosition();
-	  	font.draw(batch, score.toString(), fontPos[0] , fontPos[1]);
+	  	font.draw(batch, NumberFormatter.addCommas(score), fontPos[0] , fontPos[1]);
     }
 	
 	private float[] getCenteredFontPosition()
 	{
-		TextBounds bounds = font.getBounds(score.toString());
+		TextBounds bounds = font.getBounds(NumberFormatter.addCommas(score));
 		float x = getX() + getWidth()/2 - bounds.width/2;
 		float y = getY() + getHeight()/2 + bounds.height/2;
 		return new float[] {x,y};
@@ -70,17 +73,20 @@ public class PlayerManager extends Actor
     @Override
     public void act(float delta)
     {
-    	System.out.println(positiveGoal);
+    	long POS_POINT_CHANGE_RATE = (long) Math.ceil(.5f * positiveGoal);
+    	long NEG_POINT_CHANGE_RATE = (long) Math.ceil(.5f * negativeGoal);
+    	System.out.println("POS "+POS_POINT_CHANGE_RATE);
+    	System.out.println("NEG "+ NEG_POINT_CHANGE_RATE);
     	if(negativeGoal > 0)
     	{
-    		score -= POINT_CHANGE_RATE;
-    		negativeGoal -= POINT_CHANGE_RATE;
+    		score -= NEG_POINT_CHANGE_RATE;
+    		negativeGoal -= NEG_POINT_CHANGE_RATE;
     	}
     	
     	if(positiveGoal > 0)
     	{
-    		score += POINT_CHANGE_RATE;
-    		positiveGoal -= POINT_CHANGE_RATE;
+    		score += POS_POINT_CHANGE_RATE;
+    		positiveGoal -= POS_POINT_CHANGE_RATE;
     	}
     }
 }

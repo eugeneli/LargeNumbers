@@ -1,5 +1,7 @@
 package li.eugene.largenumbers.models;
 
+import li.eugene.largenumbers.util.NumberFormatter;
+
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -44,6 +46,7 @@ public class NumberBox extends Actor
 		
 		speed = sp;
 		shrinking = false;
+		stale = false;
 		valid = true;
 		
 		renderer = new ShapeRenderer();
@@ -64,6 +67,7 @@ public class NumberBox extends Actor
 		
 		speed = sp;
 		shrinking = false;
+		stale = false;
 		valid = true;
 	}
 	
@@ -94,7 +98,7 @@ public class NumberBox extends Actor
 	
 	private float[] getCenteredFontPosition()
 	{
-		TextBounds bounds = font.getBounds(value.toString());
+		TextBounds bounds = font.getBounds(NumberFormatter.shorten(value));
 		float x = getX() + getWidth()/2 - bounds.width/2;
 		float y = getY() + getHeight()/2 + bounds.height/2;
 		return new float[] {x,y};
@@ -122,7 +126,7 @@ public class NumberBox extends Actor
 	    //Draw number
 	  	font.setColor(Color.WHITE);
 	  	float[] fontPos = getCenteredFontPosition();
-	  	font.draw(batch, value.toString(), fontPos[0] , fontPos[1]);
+	  	font.draw(batch, NumberFormatter.shorten(value), fontPos[0] , fontPos[1]);
     }
     
     @Override
