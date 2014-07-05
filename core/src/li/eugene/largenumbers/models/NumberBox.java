@@ -22,18 +22,14 @@ public class NumberBox extends Actor
 	private boolean shrinking;
 	private boolean valid;
 	private Color color = Color.GREEN;
-	private Color goalColor = Color.GREEN;
+	private Color fontColor = Color.BLACK;
 	
-	public static final int MIN_RECT_WIDTH = 216;
+	public static final int MIN_RECT_WIDTH = 235;
 	public static final int MIN_RECT_HEIGHT = 175;
-	public static final int MAX_RECT_WIDTH = 216;
+	public static final int MAX_RECT_WIDTH = 235;
 	public static final int MAX_RECT_HEIGHT = 300;
 	
-	public static final float NUMBER_VALUE_RANGE_MIN = 0.2f;
-	public static final float NUMBER_VALUE_RANGE_MAX = 1.3f;
-	
-	private static final float SHRINK_SPEED = 15f;
-	private static final float COLOR_CHANGE_RATE = 0.1f;
+	private static final float SHRINK_SPEED = 60f;
 	
 	public NumberBox(long val, float w, float h, float x, float y, float sp)
 	{
@@ -85,14 +81,23 @@ public class NumberBox extends Actor
 	
 	public void recolor(long playerScore)
 	{
-		if(playerScore <= 2)
+		if(playerScore <= 1 && value == 1)
+		{
 			color = Color.GREEN;
+			fontColor = Color.BLACK;
+		}
 		else
 		{
 			if(playerScore > value)
+			{
 				color = Color.GREEN;
+				fontColor = Color.BLACK;
+			}
 			else
+			{
 				color = Color.RED;
+				fontColor = Color.WHITE;
+			}
 		}
 	}
 	
@@ -124,7 +129,7 @@ public class NumberBox extends Actor
 	    batch.begin();
 	    
 	    //Draw number
-	  	font.setColor(Color.WHITE);
+	  	font.setColor(fontColor);
 	  	float[] fontPos = getCenteredFontPosition();
 	  	font.draw(batch, NumberFormatter.shorten(value), fontPos[0] , fontPos[1]);
     }
@@ -139,13 +144,6 @@ public class NumberBox extends Actor
     		setY(getY() + SHRINK_SPEED);
     	}
     	resetBounds();
-    	
-    	//Change color if necessary
-    	/*if(color.r > goalColor.r) color.r -= COLOR_CHANGE_RATE;
-    	if(color.r < goalColor.r) color.r += COLOR_CHANGE_RATE;
-    	
-    	if(color.g > goalColor.g) color.g -= COLOR_CHANGE_RATE;
-    	if(color.g < goalColor.g) color.g += COLOR_CHANGE_RATE;*/
     }
     
     private InputListener numberBoxTapListener = new InputListener()

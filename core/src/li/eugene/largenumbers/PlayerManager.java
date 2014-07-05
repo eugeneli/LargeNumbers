@@ -75,8 +75,7 @@ public class PlayerManager extends Actor
     {
     	long POS_POINT_CHANGE_RATE = (long) Math.ceil(.5f * positiveGoal);
     	long NEG_POINT_CHANGE_RATE = (long) Math.ceil(.5f * negativeGoal);
-    	System.out.println("POS "+POS_POINT_CHANGE_RATE);
-    	System.out.println("NEG "+ NEG_POINT_CHANGE_RATE);
+    	
     	if(negativeGoal > 0)
     	{
     		score -= NEG_POINT_CHANGE_RATE;

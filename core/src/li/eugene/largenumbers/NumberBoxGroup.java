@@ -16,20 +16,27 @@ public class NumberBoxGroup extends Group
 {
 	private float speed = 5f;
 	private Random rand = new Random();
+	private boolean failure = false;
 	private NumberBox currentTallest;
 	private long[] pointChanges = new long[]{0,0};
 	private Queue<NumberBox> inactiveNumberBoxes = new LinkedList<NumberBox>();
 	private SnapshotArray<Actor> numberBoxes = getChildren();
+	private float chanceToCreateSmaller = 0.5f;
 	
-	private final static float BOX_CREATION_CHANCE = 0.1f;
-	private static final float ACCELERATION = 0.0003f;
+	private final static float BOX_CREATION_CHANCE = 0.25f;
+	private final static float CHANCE_TO_CREATE_SMALLER_REDUCTION = 0.9f;
+	private final static float ACCELERATION = 0.0002f;
+	private final static float MAX_SPEED = 20f;
 	
-	private boolean failure = false;
+	private final static float SMALLER_VALUE_RANGE_MIN = 0.1f;
+	private final static float SMALLER_VALUE_RANGE_MAX = 0.45f;
+	private final static float GREATER_VALUE_RANGE_MIN = 8f;
+	private final static float GREATER_VALUE_RANGE_MAX = 10f;
 	
 	public NumberBoxGroup()
 	{
-		//Create 20 numberboxes for reuse
-		for(int i = 0; i < 30; i++)
+		//Create numberboxes for reuse
+		for(int i = 0; i < 50; i++)
 		{
 			NumberBox nb = new NumberBox(0, 0, 0, 0, 0, 0);
 			inactiveNumberBoxes.add(nb);
@@ -49,8 +56,11 @@ public class NumberBoxGroup extends Group
 		{
 			NumberBox nb = (NumberBox) a;
 			
-			speed += ACCELERATION;
-			nb.setSpeed(speed);
+			if(speed <= MAX_SPEED)
+			{
+				speed += ACCELERATION;
+				nb.setSpeed(speed);
+			}
 			
 			nb.recolor(playerScore);
 			
@@ -58,12 +68,12 @@ public class NumberBoxGroup extends Group
 			{
 				if(nb.isShrinking() && !nb.isStale()) //Freshly clicked green
 				{
-					pointChanges[1] += nb.getValue();
+					pointChanges[1] += nb.getValue()/2 + 1;
 					nb.setStale(true);
 				}
 				else if(!nb.isShrinking() && !nb.isStale() && nb.getTop() <= 0) //Missed green
 				{
-					pointChanges[0] += nb.getValue();
+					pointChanges[0] += nb.getValue()/2 + 1;
 					nb.setStale(true);
 					nb.setValid(false);
 				}
@@ -109,26 +119,11 @@ public class NumberBoxGroup extends Group
 	public void createRow(long playerScore)
 	{
 		currentTallest = null;
+
+		for(int i = 0; i < 5; i++)
+			if(rand.nextFloat() < BOX_CREATION_CHANCE) createBox(playerScore, i);
 		
-		int[] usedColumns = new int[]{-1,-1,-1,-1,-1}; //don't overlap boxes
-		
-		int randomColumn = randomColumn();
-		usedColumns[randomColumn] = randomColumn;
-		createBox(playerScore, randomColumn); //Always have at least one box per row
-		
-		for(int i = 0; i < 4; i++)
-		{
-			if(rand.nextFloat() < BOX_CREATION_CHANCE)
-			{
-				int col = randomColumn();
-				if(usedColumns[col] == -1)
-				{
-					usedColumns[col] = col;
-					
-					createBox(playerScore, col);
-				}
-			}
-		}
+		chanceToCreateSmaller = 0.5f;
 	}
 	
 	private int randomColumn()
@@ -144,31 +139,29 @@ public class NumberBoxGroup extends Group
 	public void createBox(long playerScore, int offset)
 	{
 		NumberBox num = inactiveNumberBoxes.remove();
-		playerScore = playerScore == 0 ? 1 : playerScore; 
-		long min = (long) (NumberBox.NUMBER_VALUE_RANGE_MIN * playerScore);
-		long max = (long) (NumberBox.NUMBER_VALUE_RANGE_MAX * playerScore);
+		playerScore = playerScore == 0 ? 1 : playerScore;
 		
-		long boxValue = (long) (min + rand.nextFloat() * max);
+		float randFloat = rand.nextFloat();
+		long boxValue;
+		if(randFloat < chanceToCreateSmaller)
+		{
+			float randomMultiplierInRange = SMALLER_VALUE_RANGE_MIN + rand.nextFloat() * SMALLER_VALUE_RANGE_MAX;
+			boxValue = (long) (randomMultiplierInRange * playerScore);
+			chanceToCreateSmaller *= CHANCE_TO_CREATE_SMALLER_REDUCTION; //Decrease chance to create a smaller box by half each time
+		}
+		else
+		{
+			float randomMultiplierInRange = GREATER_VALUE_RANGE_MIN + rand.nextFloat() * GREATER_VALUE_RANGE_MAX;
+			boxValue = (long) (randomMultiplierInRange * playerScore);
+		}
+		
 		if(boxValue == 0)
-			boxValue = 1;
-		
-		//float boxRectWidth =  (boxValue/playerScore) * NumberBox.MAX_RECT_WIDTH;
-		//if(boxRectWidth < NumberBox.MIN_RECT_WIDTH)
-		float boxRectWidth = NumberBox.MIN_RECT_WIDTH;
-		
-		float boxRectHeight =  (boxValue/playerScore) * NumberBox.MAX_RECT_HEIGHT;
-		if(boxRectHeight < NumberBox.MIN_RECT_HEIGHT)
-			boxRectHeight = NumberBox.MIN_RECT_HEIGHT;
-		
-		/*float xPos = rand.nextFloat() * LNConstants.RES_WIDTH;
-		if(xPos + boxRectWidth > LNConstants.RES_WIDTH)
-			xPos = LNConstants.RES_WIDTH - boxRectWidth;*/
-		
-		float xPos = offset * NumberBox.MIN_RECT_WIDTH; //Add offset to spawn it in a different column
-		
+			boxValue = rand.nextBoolean() ? 1 : 2;
+
+		float xPos = offset * NumberBox.MIN_RECT_WIDTH; //Add offset to spawn it in a different column	
 		float yPos = LNConstants.RES_HEIGHT;
 		
-		num.rebuild(boxValue, boxRectWidth, boxRectHeight, xPos, yPos, speed);
+		num.rebuild(boxValue, NumberBox.MIN_RECT_WIDTH, NumberBox.MAX_RECT_HEIGHT, xPos, yPos, speed);
 	    num.setTouchable(Touchable.enabled);
 		addActor(num);
 		
